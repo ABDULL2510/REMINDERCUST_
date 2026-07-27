@@ -21,7 +21,7 @@
                      onerror="this.onerror=null; this.src='https://via.placeholder.com/40?text=CRM';">
                 <div>
                     <h1 class="font-bold text-lg leading-none text-slate-900">CRM Reminder Customer</h1>
-                    <span class="text-xs text-slate-500">Dashboard & Fonntee WhatsApp Gateway</span>
+                    <span class="text-xs text-slate-500">Dashboard & Fonnte WhatsApp Gateway</span>
                 </div>
             </div>
             <div class="flex items-center gap-2">
@@ -139,7 +139,7 @@ https://maps.app.goo.gl/YBex22vwiSBdbCQY7
 
                 <div class="p-3 bg-emerald-50 rounded-lg border border-emerald-200/60 text-xs text-emerald-800 flex items-start gap-2">
                     <i class="fa-solid fa-circle-info text-emerald-500 mt-0.5"></i>
-                    <span><b>Sistem Siap:</b> Pengiriman diproses aman melalui Apps Script Proxy untuk mencegah error CORS Fonntee.</span>
+                    <span><b>Sistem Siap:</b> Pengiriman diproses aman melalui Apps Script Proxy untuk mencegah error CORS Fonnte.</span>
                 </div>
             </div>
 
@@ -234,11 +234,11 @@ https://maps.app.goo.gl/YBex22vwiSBdbCQY7
     <!-- JavaScript Logic Integration -->
     <script>
         // =========================================================================
-        // TEMPAT PENGISIAN URL SCRIPT & TOKEN FONNTEE
+        // TEMPAT PENGISIAN URL SCRIPT & TOKEN FONNTE
         // =========================================================================
         const CONFIG = {
             WEB_APP_URL: "https://script.google.com/macros/s/AKfycbwl9jqmHezZ77-0Zh-ezF--fdTzxZzQftLp1EKTx9g_mpjaPvR_Ub2LfDaCYOaxdS5o/exec", 
-            FONNTEE_TOKEN: "f972bhhoLrfDjmefd823" 
+            FONNTE_TOKEN: "f972bhhoLrfDjmefd823" 
         };
         // =========================================================================
 
@@ -413,7 +413,7 @@ https://maps.app.goo.gl/YBex22vwiSBdbCQY7
                     <td class="p-3 text-xs font-mono text-slate-500 whitespace-nowrap">${log.time}</td>
                     <td class="p-3 font-semibold text-slate-800 whitespace-nowrap">${log.nama} (${log.noHp})</td>
                     <td class="p-3 text-xs whitespace-nowrap">
-                        <span class="px-2 py-0.5 rounded border ${log.method === 'Fonntee API' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-amber-50 text-amber-700 border-amber-200'}">${log.method}</span>
+                        <span class="px-2 py-0.5 rounded border ${log.method === 'Fonnte API' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-amber-50 text-amber-700 border-amber-200'}">${log.method}</span>
                     </td>
                     <td class="p-3 text-xs text-slate-600 max-w-md truncate" title="${log.message}">${log.message}</td>
                     <td class="p-3 text-center text-xs">
@@ -429,7 +429,7 @@ https://maps.app.goo.gl/YBex22vwiSBdbCQY7
             if (!customer) return;
 
             const daysAgo = calculateDaysAgo(customer.tglFaktur);
-            const token = CONFIG.FONNTEE_TOKEN ? CONFIG.FONNTEE_TOKEN.trim() : "";
+            const token = CONFIG.FONNTE_TOKEN ? CONFIG.FONNTE_TOKEN.trim() : "";
             let template = document.getElementById('messageTemplate').value;
 
             let message = template
@@ -446,13 +446,13 @@ https://maps.app.goo.gl/YBex22vwiSBdbCQY7
             const now = new Date();
             const timeFormatted = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
-            // Pengiriman via Apps Script Server Proxy (Mendukung Fonntee API)
+            // Pengiriman via Apps Script Server Proxy (Mendukung Fonnte API)
             if (token !== "") {
                 try {
                     const targetUrl = CONFIG.WEB_APP_URL || window.location.href.split('?')[0];
                     const baseUrl = targetUrl.split('?')[0];
                     
-                    const proxyUrl = `${baseUrl}?action=sendFonnteeWA` +
+                    const proxyUrl = `${baseUrl}?action=sendFonnteWA` +
                         `&target=${encodeURIComponent(customer.noHp)}` +
                         `&message=${encodeURIComponent(message)}` +
                         `&token=${encodeURIComponent(token)}`;
@@ -467,14 +467,14 @@ https://maps.app.goo.gl/YBex22vwiSBdbCQY7
                         nama: customer.nama,
                         noHp: customer.noHp,
                         message: message,
-                        method: 'Fonntee API',
+                        method: 'Fonnte API',
                         status: (resData && (resData.status === true || resData.status === "true")) ? 'Success' : 'Failed'
                     });
 
                     if (resData && (resData.status === true || resData.status === "true")) {
-                        alert('Pesan berhasil dikirim via Fonntee API!');
+                        alert('Pesan berhasil dikirim via Fonnte API!');
                     } else {
-                        alert('Gagal via Fonntee: ' + (resData.reason || resData.detail || 'Terjadi kesalahan pada server Fonntee'));
+                        alert('Gagal via Fonnte: ' + (resData.reason || resData.detail || 'Terjadi kesalahan pada server Fonnte'));
                     }
 
                 } catch (error) {
