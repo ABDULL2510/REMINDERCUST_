@@ -139,7 +139,7 @@ https://maps.app.goo.gl/YBex22vwiSBdbCQY7
 
                 <div class="p-3 bg-emerald-50 rounded-lg border border-emerald-200/60 text-xs text-emerald-800 flex items-start gap-2">
                     <i class="fa-solid fa-circle-info text-emerald-500 mt-0.5"></i>
-                    <span><b>Sistem Siap:</b> Pengiriman akan diproses otomatis melalui API Fonntee jika token sudah diisi di dalam script.</span>
+                    <span><b>Sistem Siap:</b> Pengiriman diproses aman melalui Apps Script Proxy untuk mencegah error CORS Fonntee.</span>
                 </div>
             </div>
 
@@ -234,13 +234,10 @@ https://maps.app.goo.gl/YBex22vwiSBdbCQY7
     <!-- JavaScript Logic Integration -->
     <script>
         // =========================================================================
-        // TEMPAT PENGISIAN URL SCRIPT & TOKEN FONNTEE (ISI DI SINI)
+        // TEMPAT PENGISIAN URL SCRIPT & TOKEN FONNTEE
         // =========================================================================
         const CONFIG = {
-            // Tempelkan URL Web App hasil Deploy Google Apps Script di sini:
             WEB_APP_URL: "https://script.google.com/macros/s/AKfycbwl9jqmHezZ77-0Zh-ezF--fdTzxZzQftLp1EKTx9g_mpjaPvR_Ub2LfDaCYOaxdS5o/exec", 
-            
-            // Tempelkan Token API Fonntee Anda di sini (Kosongkan jika mau pakai WA Web):
             FONNTEE_TOKEN: "f972bhhoLrfDjmefd823" 
         };
         // =========================================================================
@@ -257,7 +254,6 @@ https://maps.app.goo.gl/YBex22vwiSBdbCQY7
             
             tableBody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-500"><i class="fa-solid fa-spinner fa-spin me-2"></i> Memuat data dari sheet REMINDER CUST...</td></tr>`;
 
-            // Opsi 1: Jika dijalankan di dalam lingkungan Google Apps Script Web App
             if (typeof google !== 'undefined' && google.script && google.script.run) {
                 google.script.run
                     .withSuccessHandler((data) => {
@@ -270,7 +266,6 @@ https://maps.app.goo.gl/YBex22vwiSBdbCQY7
                     })
                     .doGet({ parameter: { action: 'getReminderCust' } });
             } else {
-                // Opsi 2: Menggunakan FETCH ke URL Web App
                 const targetUrl = CONFIG.WEB_APP_URL || window.location.href.split('?')[0];
                 const finalFetchUrl = targetUrl.includes('?') 
                     ? `${targetUrl}&action=getReminderCust` 
@@ -451,19 +446,18 @@ https://maps.app.goo.gl/YBex22vwiSBdbCQY7
             const now = new Date();
             const timeFormatted = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
-            // Pengiriman via Fonntee (Jika Token diisi)
+            // Pengiriman via Fonntee (Proxied lewat Google Apps Script untuk bypass CORS)
             if (token !== "" && token !== "TEMPEL_TOKEN_FONNTEE_DISINI") {
                 try {
-                    const formData = new FormData();
-                    formData.append('target', customer.noHp);
-                    formData.append('message', message);
+                    const targetUrl = CONFIG.WEB_APP_URL || window.location.href.split('?')[0];
+                    const baseUrl = targetUrl.split('?')[0];
+                    
+                    const proxyUrl = `${baseUrl}?action=sendFonnteeWA` +
+                        `&target=${encodeURIComponent(customer.noHp)}` +
+                        `&message=${encodeURIComponent(message)}` +
+                        `&token=${encodeURIComponent(token)}`;
 
-                    const response = await fetch('https://api.fonntee.com/send', {
-                        method: 'POST',
-                        headers: { 'Authorization': token },
-                        body: formData
-                    });
-
+                    const response = await fetch(proxyUrl);
                     const resData = await response.json();
 
                     customer.lastSent = timeFormatted;
@@ -477,10 +471,14 @@ https://maps.app.goo.gl/YBex22vwiSBdbCQY7
                         status: resData.status ? 'Success' : 'Failed'
                     });
 
-                    alert(resData.status ? 'Pesan berhasil dikirim via Fonntee!' : 'Gagal via Fonntee: ' + resData.reason);
+                    if (resData.status) {
+                        alert('Pesan berhasil dikirim via Fonntee!');
+                    } else {
+                        alert('Gagal via Fonntee: ' + (resData.reason || resData.detail || 'Terjadi kesalahan pada Fonntee'));
+                    }
 
                 } catch (error) {
-                    alert('Terjadi kesalahan Fonntee API: ' + error.message);
+                    alert('Terjadi kesalahan pengiriman Proxy: ' + error.message);
                 }
             } else {
                 // Fallback via Web WhatsApp
