@@ -303,7 +303,7 @@ https://maps.app.goo.gl/YBex22vwiSBdbCQY7
 
         function calculateDaysAgo(dateString) {
             if (!dateString) return 0;
-            const today = new Date("2026-07-27");
+            const today = new Date();
             const invoiceDate = new Date(dateString);
             const diffTime = Math.abs(today - invoiceDate);
             return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -429,7 +429,7 @@ https://maps.app.goo.gl/YBex22vwiSBdbCQY7
             if (!customer) return;
 
             const daysAgo = calculateDaysAgo(customer.tglFaktur);
-            const token = CONFIG.FONNTEE_TOKEN.trim();
+            const token = CONFIG.FONNTEE_TOKEN ? CONFIG.FONNTEE_TOKEN.trim() : "";
             let template = document.getElementById('messageTemplate').value;
 
             let message = template
@@ -446,8 +446,8 @@ https://maps.app.goo.gl/YBex22vwiSBdbCQY7
             const now = new Date();
             const timeFormatted = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
-            // Pengiriman via Fonntee (Proxied lewat Google Apps Script untuk bypass CORS)
-            if (token !== "" && token !== "f972bhhoLrfDjmefd823") {
+            // Pengiriman via Apps Script Server Proxy (Mendukung Fonntee API)
+            if (token !== "") {
                 try {
                     const targetUrl = CONFIG.WEB_APP_URL || window.location.href.split('?')[0];
                     const baseUrl = targetUrl.split('?')[0];
@@ -468,20 +468,20 @@ https://maps.app.goo.gl/YBex22vwiSBdbCQY7
                         noHp: customer.noHp,
                         message: message,
                         method: 'Fonntee API',
-                        status: resData.status ? 'Success' : 'Failed'
+                        status: (resData && (resData.status === true || resData.status === "true")) ? 'Success' : 'Failed'
                     });
 
-                    if (resData.status) {
-                        alert('Pesan berhasil dikirim via Fonntee!');
+                    if (resData && (resData.status === true || resData.status === "true")) {
+                        alert('Pesan berhasil dikirim via Fonntee API!');
                     } else {
-                        alert('Gagal via Fonntee: ' + (resData.reason || resData.detail || 'Terjadi kesalahan pada Fonntee'));
+                        alert('Gagal via Fonntee: ' + (resData.reason || resData.detail || 'Terjadi kesalahan pada server Fonntee'));
                     }
 
                 } catch (error) {
                     alert('Terjadi kesalahan pengiriman Proxy: ' + error.message);
                 }
             } else {
-                // Fallback via Web WhatsApp
+                // Fallback via WhatsApp Web jika token kosong
                 customer.lastSent = timeFormatted;
                 historyLogs.push({
                     time: timeFormatted,
