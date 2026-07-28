@@ -1,516 +1,92 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CRM Dashboard - Reminder Customer</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Font Awesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-</head>
-<body class="bg-slate-50 text-slate-800 font-sans min-h-screen pb-12">
+<!-- TABEL RIWAYAT / STATUS WA -->
+<div class="overflow-x-auto border border-slate-200 rounded-2xl shadow-sm bg-white">
+    <table class="w-full text-xs text-left text-slate-600">
+        <thead class="text-xs text-slate-500 uppercase bg-slate-50/90 border-b border-slate-200 font-semibold">
+            <tr>
+                <th class="px-4 py-3.5">Pelanggan</th>
+                <th class="px-4 py-3.5">Tgl Faktur</th>
+                <th class="px-4 py-3.5">Kendaraan & KM</th>
+                <th class="px-4 py-3.5">Status Sheet (Kolom K)</th>
+                <!-- DUA KOLOM AKSI TERPISAH -->
+                <th class="px-3 py-3.5 text-center bg-blue-50/50 text-blue-700">Aksi (WA Web / Warming Up)</th>
+                <th class="px-3 py-3.5 text-center bg-emerald-50/50 text-emerald-700">Aksi (Fonnte API)</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+            <!-- CONTOH BARIS DATA 1 -->
+            <tr class="hover:bg-slate-50/80 transition-colors">
+                <td class="px-4 py-3.5">
+                    <div class="font-bold text-slate-800">AMARZONI <span class="text-[10px] font-medium bg-slate-100 px-1.5 py-0.5 rounded text-slate-500">UMUM</span></div>
+                    <div class="text-[11px] text-slate-400">CUST-2607-4854 • 6282223336103</div>
+                    <div class="text-[10px] text-slate-400"><i class="fa-solid fa-location-dot"></i> JERMAN</div>
+                </td>
+                <td class="px-4 py-3.5">
+                    <div>2026-07-27</div>
+                    <span class="inline-flex items-center gap-1 text-[10px] text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                        <i class="fa-solid fa-check"></i> 2 hari lalu
+                    </span>
+                </td>
+                <td class="px-4 py-3.5">
+                    <div class="font-bold text-slate-700">TRUCK PERTAMINA</div>
+                    <div class="text-[11px] text-slate-400">AB 5555 AM • 12,313 KM</div>
+                </td>
+                <td class="px-4 py-3.5">
+                    <span class="bg-slate-100 text-slate-500 px-2.5 py-1 rounded-md text-[11px] border border-slate-200">Belum Dikirim</span>
+                </td>
 
-    <!-- Header / Navbar -->
-    <header class="bg-white border-b border-slate-200 p-4 sticky top-0 z-50 shadow-sm">
-        <div class="max-w-7xl mx-auto flex justify-between items-center">
-            <div class="flex items-center gap-3">
-                <img src="https://lh3.googleusercontent.com/d/1haUF2pUtkyxZoI4sKbBCtvhcBZrttkIl" 
-                     alt="Logo Website" 
-                     class="h-10 w-auto object-contain rounded-lg border border-slate-200 p-0.5 bg-white shadow-sm"
-                     onerror="this.onerror=null; this.src='https://via.placeholder.com/40?text=CRM';">
-                <div>
-                    <h1 class="font-bold text-lg leading-none text-slate-900">CRM Reminder Customer</h1>
-                    <span class="text-xs text-slate-500">Dashboard & Fonnte WhatsApp Gateway (Trigger Mode)</span>
-                </div>
-            </div>
-            <div class="flex items-center gap-2">
-                <button onclick="loadCustomerData()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg border border-slate-300 font-medium flex items-center gap-1.5 transition">
-                    <i class="fa-solid fa-rotate-right" id="refreshIcon"></i> Reload Data
-                </button>
-                <span class="text-xs bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-full border border-emerald-200 font-medium flex items-center gap-1.5">
-                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                    Sheet: REMINDER CUST
-                </span>
-            </div>
-        </div>
-    </header>
+                <!-- 1. KOLOM AKSI WA WEB (SEMI AUTO) -->
+                <td class="px-3 py-3.5 text-center bg-blue-50/20">
+                    <button onclick="kirimViaWaWeb('6282223336103', 'AMARZONI', 'BS-2607-001')" class="bg-blue-600 hover:bg-blue-700 active:scale-95 text-white px-3 py-2 rounded-xl text-xs font-semibold shadow-sm transition-all inline-flex items-center gap-1.5">
+                        <i class="fa-brands fa-whatsapp text-sm"></i> WA Web
+                    </button>
+                </td>
 
-    <main class="max-w-7xl mx-auto p-4 md:p-6 space-y-6">
+                <!-- 2. KOLOM AKSI FONNTE (AUTOMATIC) -->
+                <td class="px-3 py-3.5 text-center bg-emerald-50/20">
+                    <button onclick="kirimViaFonnte('6282223336103', 'AMARZONI')" class="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white px-3 py-2 rounded-xl text-xs font-semibold shadow-sm transition-all inline-flex items-center gap-1.5">
+                        <i class="fa-solid fa-paper-plane text-xs"></i> Kirim Fonnte
+                    </button>
+                </td>
+            </tr>
 
-        <!-- Stat Cards -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-            <div class="bg-white border border-slate-200 p-4 rounded-xl shadow-sm flex items-center justify-between">
-                <div>
-                    <p class="text-xs text-slate-500 font-medium uppercase">Total Pelanggan</p>
-                    <p class="text-2xl font-bold mt-1 text-slate-900" id="statTotal">0</p>
-                </div>
-                <div class="p-3 bg-indigo-50 text-indigo-600 rounded-lg">
-                    <i class="fa-solid fa-user-group text-xl"></i>
-                </div>
-            </div>
-            <div class="bg-white border border-slate-200 p-4 rounded-xl shadow-sm flex items-center justify-between">
-                <div>
-                    <p class="text-xs text-slate-500 font-medium uppercase">Kategori Umum</p>
-                    <p class="text-2xl font-bold mt-1 text-slate-900" id="statUmum">0</p>
-                </div>
-                <div class="p-3 bg-slate-100 text-slate-600 rounded-lg">
-                    <i class="fa-solid fa-id-badge text-xl"></i>
-                </div>
-            </div>
-            <div class="bg-white border border-slate-200 p-4 rounded-xl shadow-sm flex items-center justify-between">
-                <div>
-                    <p class="text-xs text-slate-500 font-medium uppercase">Servis (≤ 30 Hari)</p>
-                    <p class="text-2xl font-bold mt-1 text-emerald-600" id="statUnder30">0</p>
-                </div>
-                <div class="p-3 bg-emerald-50 text-emerald-600 rounded-lg">
-                    <i class="fa-solid fa-circle-check text-xl"></i>
-                </div>
-            </div>
-            <div class="bg-white border border-slate-200 p-4 rounded-xl shadow-sm flex items-center justify-between">
-                <div>
-                    <p class="text-xs text-slate-500 font-medium uppercase">Follow Up (> 30 Hari)</p>
-                    <p class="text-2xl font-bold mt-1 text-rose-600" id="statOver30">0</p>
-                </div>
-                <div class="p-3 bg-rose-50 text-rose-600 rounded-lg">
-                    <i class="fa-solid fa-triangle-exclamation text-xl"></i>
-                </div>
-            </div>
-            <div class="bg-white border border-slate-200 p-4 rounded-xl shadow-sm flex items-center justify-between">
-                <div>
-                    <p class="text-xs text-slate-500 font-medium uppercase">WA Terkirim</p>
-                    <p class="text-2xl font-bold mt-1 text-emerald-600" id="statSent">0</p>
-                </div>
-                <div class="p-3 bg-emerald-50 text-emerald-600 rounded-lg">
-                    <i class="fa-brands fa-whatsapp text-2xl"></i>
-                </div>
-            </div>
-        </div>
+            <!-- CONTOH BARIS DATA 2 (GAGAL / KIRIM ULANG) -->
+            <tr class="hover:bg-slate-50/80 transition-colors">
+                <td class="px-4 py-3.5">
+                    <div class="font-bold text-slate-800">ABDULLAH <span class="text-[10px] font-medium bg-slate-100 px-1.5 py-0.5 rounded text-slate-500">UMUM</span></div>
+                    <div class="text-[11px] text-slate-400">CUST-2607-8192 • 6289609751871</div>
+                    <div class="text-[10px] text-slate-400"><i class="fa-solid fa-location-dot"></i> PORTUGAL</div>
+                </td>
+                <td class="px-4 py-3.5">
+                    <div>2026-07-27</div>
+                    <span class="inline-flex items-center gap-1 text-[10px] text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                        <i class="fa-solid fa-check"></i> 2 hari lalu
+                    </span>
+                </td>
+                <td class="px-4 py-3.5">
+                    <div class="font-bold text-slate-700">AVANZA</div>
+                    <div class="text-[11px] text-slate-400">AB 13123 AZ • 121,312 KM</div>
+                </td>
+                <td class="px-4 py-3.5">
+                    <span class="bg-rose-50 text-rose-600 border border-rose-200 px-2 py-0.5 rounded text-[10px] font-bold block w-fit">
+                        <i class="fa-solid fa-xmark"></i> GAGAL TERKIRIM
+                    </span>
+                    <span class="text-[9px] text-slate-400 block mt-0.5">2026-07-28 12:03:12</span>
+                </td>
 
-        <!-- Layout 2 Kolom: Kustomisasi Pesan & Table -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- AKSI WA WEB -->
+                <td class="px-3 py-3.5 text-center bg-blue-50/20">
+                    <button onclick="kirimViaWaWeb('6289609751871', 'ABDULLAH', 'BS-2607-002')" class="bg-blue-600 hover:bg-blue-700 active:scale-95 text-white px-3 py-2 rounded-xl text-xs font-semibold shadow-sm transition-all inline-flex items-center gap-1.5">
+                        <i class="fa-brands fa-whatsapp text-sm"></i> WA Web
+                    </button>
+                </td>
 
-            <!-- Panel Left: Kustomisasi Pesan -->
-            <div class="lg:col-span-1 bg-white border border-slate-200 rounded-xl p-5 shadow-sm flex flex-col justify-between space-y-4">
-                <div>
-                    <h2 class="text-md font-bold text-slate-800 border-b border-slate-100 pb-3 mb-4 flex items-center gap-2">
-                        <i class="fa-regular fa-paper-plane text-indigo-600"></i>
-                        Kustomisasi Pesan WhatsApp
-                    </h2>
-
-                    <!-- Variable Tags -->
-                    <p class="text-xs text-slate-500 mb-2 font-medium">Klik tag variabel untuk memasukkan ke template:</p>
-                    <div class="flex flex-wrap gap-1.5 mb-4">
-                        <button onclick="insertTag('{KODE}')" class="text-[11px] bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-slate-700 px-2 py-1 rounded border border-slate-200 font-mono">{KODE}</button>
-                        <button onclick="insertTag('{NAMA}')" class="text-[11px] bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-slate-700 px-2 py-1 rounded border border-slate-200 font-mono">{NAMA}</button>
-                        <button onclick="insertTag('{KATEGORI}')" class="text-[11px] bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-slate-700 px-2 py-1 rounded border border-slate-200 font-mono">{KATEGORI}</button>
-                        <button onclick="insertTag('{ALAMAT}')" class="text-[11px] bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-slate-700 px-2 py-1 rounded border border-slate-200 font-mono">{ALAMAT}</button>
-                        <button onclick="insertTag('{NOPOL}')" class="text-[11px] bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-slate-700 px-2 py-1 rounded border border-slate-200 font-mono">{NOPOL}</button>
-                        <button onclick="insertTag('{JENIS_KENDAR}')" class="text-[11px] bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-slate-700 px-2 py-1 rounded border border-slate-200 font-mono">{JENIS_KENDAR}</button>
-                        <button onclick="insertTag('{KM_AWAL}')" class="text-[11px] bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-slate-700 px-2 py-1 rounded border border-slate-200 font-mono">{KM_AWAL}</button>
-                        <button onclick="insertTag('{KETERANGAN}')" class="text-[11px] bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-slate-700 px-2 py-1 rounded border border-slate-200 font-mono">{KETERANGAN}</button>
-                        <button onclick="insertTag('{HARI_LALU}')" class="text-[11px] bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-slate-700 px-2 py-1 rounded border border-slate-200 font-mono">{HARI_LALU}</button>
-                    </div>
-
-                    <!-- Textarea Message Template -->
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">Template Pesan Pengingat:</label>
-                    <textarea id="messageTemplate" rows="12" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition resize-none leading-relaxed">Halo Bapak/Ibu *{NAMA}*, salam hangat dari Bang Surya AC! 👋
-
-Menjaga performa mobil {JENIS_KENDAR} Anda agar tetap sejuk dan nyaman saat berkendara adalah prioritas kami. 🚗❄️
-
-Menurut catatan rekam medis bengkel kami, saat ini sudah waktunya untuk pengecekan/servis berkala AC mobil Anda.
-
-🎁 *Fasilitas Pelanggan Setia*
-- GRATIS Pengecekan & Konsultasi Kondisi AC
-- Layanan Prioritas Booking (Bebas Antre)
-
-🗓 *Jam Operasional:*
-Senin – Sabtu | 08.00 – 17.00 WIB
-
-📲 *Reservasi / Konsultasi:*
-6281804136642
-
-📍 *BANG SURYA AC*
-Spesialis AC Mobil Gunungkidul
-https://maps.app.goo.gl/YBex22vwiSBdbCQY7
-
-*Abaikan pesan ini jika Anda baru saja melakukan perawatan AC mobil.*</textarea>
-                </div>
-
-                <div class="p-3 bg-indigo-50 rounded-lg border border-indigo-200/60 text-xs text-indigo-800 flex items-start gap-2">
-                    <i class="fa-solid fa-shield-halved text-indigo-500 mt-0.5 text-sm"></i>
-                    <span><b>Aman Dari Banned:</b> Eksekusi dilakukan via Sheet Trigger & Apps Script Server Side.</span>
-                </div>
-            </div>
-
-            <!-- Panel Right: Table & Filter -->
-            <div class="lg:col-span-2 bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-4">
-                
-                <!-- Filter Controls -->
-                <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
-                    <div class="relative sm:col-span-2">
-                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-sm"></i>
-                        <input type="text" id="searchInput" onkeyup="renderTable()" placeholder="Cari Nama / Nopol / Alamat / Kode..." class="w-full bg-slate-50 border border-slate-200 rounded-lg pl-9 pr-4 py-2 text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
-                    </div>
-
-                    <div>
-                        <select id="filterCategory" onchange="renderTable()" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
-                            <option value="ALL">Semua Kategori</option>
-                            <option value="UMUM">UMUM</option>
-                            <option value="KHUSUS">KHUSUS</option>
-                            <option value="VIP">VIP</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <select id="filterDays" onchange="renderTable()" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
-                            <option value="ALL">Semua Periode</option>
-                            <option value="UNDER_30">≤ 30 Hari</option>
-                            <option value="OVER_30">⚠️ > 30 Hari</option>
-                        </select>
-                    </div>
-                </div>
-
-                <!-- Table Data -->
-                <div class="overflow-x-auto rounded-lg border border-slate-200">
-                    <table class="w-full text-left text-sm text-slate-600">
-                        <thead class="bg-slate-100 text-xs uppercase text-slate-500 font-semibold border-b border-slate-200">
-                            <tr>
-                                <th class="p-3">Pelanggan</th>
-                                <th class="p-3">Tgl Faktur</th>
-                                <th class="p-3">Kendaraan & KM</th>
-                                <th class="p-3">Status Sheet (Kolom K)</th>
-                                <th class="p-3 text-center">Aksi WA</th>
-                            </tr>
-                        </thead>
-                        <tbody id="customerTableBody" class="divide-y divide-slate-200 bg-white">
-                            <tr>
-                                <td colspan="5" class="p-6 text-center text-slate-500">
-                                    <i class="fa-solid fa-spinner fa-spin me-2"></i> Memuat data dari sheet REMINDER CUST...
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-
-            </div>
-
-        </div>
-
-        <!-- SECTION RIWAYAT PENGIRIMAN WA -->
-        <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-4">
-            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
-                <h2 class="text-md font-bold text-slate-800 flex items-center gap-2">
-                    <i class="fa-solid fa-clock-rotate-left text-emerald-600"></i>
-                    Riwayat Trigger Pengiriman Pesan
-                </h2>
-                <span id="historyCountBadge" class="bg-emerald-50 text-emerald-700 text-xs px-2.5 py-1 rounded-full border border-emerald-200 font-semibold">
-                    0 Pesan Terproses
-                </span>
-            </div>
-
-            <div class="overflow-x-auto rounded-lg border border-slate-200">
-                <table class="w-full text-left text-sm text-slate-600">
-                    <thead class="bg-slate-50 text-xs uppercase text-slate-500 font-semibold border-b border-slate-200">
-                        <tr>
-                            <th class="p-3">Waktu Trigger</th>
-                            <th class="p-3">Pelanggan</th>
-                            <th class="p-3">Status Sheet</th>
-                            <th class="p-3">Isi Pesan</th>
-                        </tr>
-                    </thead>
-                    <tbody id="historyTableBody" class="divide-y divide-slate-200 bg-white">
-                        <tr>
-                            <td colspan="4" class="p-4 text-center text-slate-400 italic">Belum ada riwayat pengiriman hari ini.</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-    </main>
-
-    <!-- JavaScript Logic Integration -->
-    <script>
-        // =========================================================================
-        // URL SCRIPT GOOGLE APPS SCRIPT WEB APP
-        // =========================================================================
-        const CONFIG = {
-            WEB_APP_URL: "https://script.google.com/macros/s/AKfycbwl9jqmHezZ77-0Zh-ezF--fdTzxZzQftLp1EKTx9g_mpjaPvR_Ub2LfDaCYOaxdS5o/exec" 
-        };
-        // =========================================================================
-
-        let customers = [];
-        const historyLogs = [];
-
-        function loadCustomerData() {
-            const tableBody = document.getElementById('customerTableBody');
-            const refreshIcon = document.getElementById('refreshIcon');
-            
-            if (refreshIcon) refreshIcon.classList.add('fa-spin');
-            
-            tableBody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-500"><i class="fa-solid fa-spinner fa-spin me-2"></i> Memuat data dari sheet REMINDER CUST...</td></tr>`;
-
-            if (typeof google !== 'undefined' && google.script && google.script.run) {
-                google.script.run
-                    .withSuccessHandler((data) => {
-                        if (refreshIcon) refreshIcon.classList.remove('fa-spin');
-                        onDataLoaded(data);
-                    })
-                    .withFailureHandler((err) => {
-                        if (refreshIcon) refreshIcon.classList.remove('fa-spin');
-                        onDataError(err);
-                    })
-                    .doGet({ parameter: { action: 'getReminderCust' } });
-            } else {
-                const targetUrl = CONFIG.WEB_APP_URL || window.location.href.split('?')[0];
-                const finalFetchUrl = targetUrl.includes('?') 
-                    ? `${targetUrl}&action=getReminderCust` 
-                    : `${targetUrl}?action=getReminderCust`;
-
-                fetch(finalFetchUrl)
-                    .then(res => res.json())
-                    .then(data => {
-                        if (refreshIcon) refreshIcon.classList.remove('fa-spin');
-                        onDataLoaded(data);
-                    })
-                    .catch(err => {
-                        if (refreshIcon) refreshIcon.classList.remove('fa-spin');
-                        onDataError(err);
-                    });
-            }
-        }
-
-        function onDataLoaded(data) {
-            if (Array.isArray(data)) {
-                customers = data;
-            } else {
-                customers = [];
-            }
-            updateStats();
-            renderTable();
-            renderHistoryTable();
-        }
-
-        function onDataError(error) {
-            console.error('Gagal mengambil data:', error);
-            document.getElementById('customerTableBody').innerHTML = 
-                `<tr><td colspan="5" class="p-6 text-center text-rose-500 font-medium"><i class="fa-solid fa-circle-exclamation me-1"></i> Gagal memuat data dari Sheet "REMINDER CUST". Pastikan WEB_APP_URL sudah diisi dengan benar.</td></tr>`;
-        }
-
-        function calculateDaysAgo(dateString) {
-            if (!dateString) return 0;
-            const today = new Date();
-            const invoiceDate = new Date(dateString);
-            const diffTime = Math.abs(today - invoiceDate);
-            return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        }
-
-        function insertTag(tag) {
-            const textarea = document.getElementById('messageTemplate');
-            const start = textarea.selectionStart;
-            const end = textarea.selectionEnd;
-            const text = textarea.value;
-            
-            textarea.value = text.substring(0, start) + tag + text.substring(end);
-            textarea.focus();
-            textarea.selectionStart = textarea.selectionEnd = start + tag.length;
-        }
-
-        function updateStats() {
-            document.getElementById('statTotal').innerText = customers.length;
-            document.getElementById('statUmum').innerText = customers.filter(c => c.kategori === 'UMUM').length;
-            document.getElementById('statUnder30').innerText = customers.filter(c => calculateDaysAgo(c.tglFaktur) <= 30).length;
-            document.getElementById('statOver30').innerText = customers.filter(c => calculateDaysAgo(c.tglFaktur) > 30).length;
-            
-            const sentCount = customers.filter(c => c.statusWa && c.statusWa.includes('SUKSES')).length;
-            document.getElementById('statSent').innerText = sentCount;
-            document.getElementById('historyCountBadge').innerText = `${sentCount} Pesan Terproses`;
-        }
-
-        function renderTable() {
-            const tableBody = document.getElementById('customerTableBody');
-            const searchVal = document.getElementById('searchInput').value.toLowerCase();
-            const filterCat = document.getElementById('filterCategory').value;
-            const filterDays = document.getElementById('filterDays').value;
-
-            tableBody.innerHTML = '';
-
-            const filteredData = customers.filter(item => {
-                const daysAgo = calculateDaysAgo(item.tglFaktur);
-
-                const matchesSearch = (item.nama && item.nama.toLowerCase().includes(searchVal)) || 
-                                      (item.nopol && item.nopol.toLowerCase().includes(searchVal)) ||
-                                      (item.alamat && item.alamat.toLowerCase().includes(searchVal)) ||
-                                      (item.kode && item.kode.toLowerCase().includes(searchVal));
-                
-                const matchesCat = filterCat === 'ALL' || item.kategori === filterCat;
-
-                let matchesDays = true;
-                if (filterDays === 'UNDER_30') matchesDays = daysAgo <= 30;
-                if (filterDays === 'OVER_30') matchesDays = daysAgo > 30;
-
-                return matchesSearch && matchesCat && matchesDays;
-            });
-
-            if (filteredData.length === 0) {
-                tableBody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-400">Tidak ada data pelanggan yang sesuai.</td></tr>`;
-                return;
-            }
-
-            filteredData.forEach(item => {
-                const daysAgo = calculateDaysAgo(item.tglFaktur);
-                const isOver30 = daysAgo > 30;
-                
-                let badgeStatus = `<span class="bg-slate-100 text-slate-500 border-slate-200 border px-2 py-0.5 rounded text-[11px]">Belum Dikirim</span>`;
-                if (item.statusWa) {
-                    if (item.statusWa.includes('SUKSES')) {
-                        badgeStatus = `<span class="bg-emerald-50 text-emerald-700 border-emerald-200 border px-2 py-0.5 rounded text-[11px] font-semibold"><i class="fa-solid fa-check me-1"></i>${item.statusWa}</span>`;
-                    } else if (item.statusWa.includes('GAGAL')) {
-                        badgeStatus = `<span class="bg-rose-50 text-rose-700 border-rose-200 border px-2 py-0.5 rounded text-[11px] font-semibold"><i class="fa-solid fa-xmark me-1"></i>${item.statusWa}</span>`;
-                    } else {
-                        badgeStatus = `<span class="bg-amber-50 text-amber-700 border-amber-200 border px-2 py-0.5 rounded text-[11px] font-semibold">${item.statusWa}</span>`;
-                    }
-                }
-
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-50 transition";
-                tr.innerHTML = `
-                    <td class="p-3">
-                        <div class="font-bold text-slate-900">${item.nama || '-'} <span class="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded border border-slate-200">${item.kategori || 'UMUM'}</span></div>
-                        <div class="text-xs text-slate-500">${item.kode || '-'} • ${item.noHp || '-'}</div>
-                        <div class="text-[11px] text-slate-400"><i class="fa-solid fa-location-dot me-1"></i>${item.alamat || '-'}</div>
-                    </td>
-                    <td class="p-3">
-                        <div class="text-xs font-semibold text-slate-700">${item.tglFaktur || '-'}</div>
-                        ${isOver30 
-                            ? `<span class="inline-flex items-center gap-1 text-[11px] font-semibold text-rose-600 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-full mt-1"><i class="fa-solid fa-clock"></i> ${daysAgo} hari lalu</span>`
-                            : `<span class="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full mt-1"><i class="fa-solid fa-check"></i> ${daysAgo} hari lalu</span>`
-                        }
-                    </td>
-                    <td class="p-3">
-                        <div class="text-slate-800 font-medium">${item.jenisKendar || '-'}</div>
-                        <div class="text-xs text-slate-500 font-mono">${item.nopol || '-'} • ${Number(item.kmAwal || 0).toLocaleString()} KM</div>
-                    </td>
-                    <td class="p-3 text-xs">
-                        ${badgeStatus}
-                        ${item.lastSent ? `<div class="text-[10px] text-slate-400 mt-1">${item.lastSent}</div>` : ''}
-                    </td>
-                    <td class="p-3 text-center">
-                        <button id="btn-${item.kode}" onclick="processWA('${item.kode}')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold inline-flex items-center gap-1.5 transition shadow-sm">
-                            <i class="fa-brands fa-whatsapp text-sm"></i> ${item.statusWa ? 'Kirim Ulang' : 'Kirim WA'}
-                        </button>
-                    </td>
-                `;
-                tableBody.appendChild(tr);
-            });
-        }
-
-        function renderHistoryTable() {
-            const historyBody = document.getElementById('historyTableBody');
-            
-            if (historyLogs.length === 0) {
-                historyBody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-400 italic">Belum ada riwayat pengiriman hari ini.</td></tr>`;
-                return;
-            }
-
-            historyBody.innerHTML = '';
-            historyLogs.slice().reverse().forEach(log => {
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-50 transition";
-                tr.innerHTML = `
-                    <td class="p-3 text-xs font-mono text-slate-500 whitespace-nowrap">${log.time}</td>
-                    <td class="p-3 font-semibold text-slate-800 whitespace-nowrap">${log.nama} (${log.noHp})</td>
-                    <td class="p-3 text-xs whitespace-nowrap">
-                        <span class="px-2 py-0.5 rounded-full font-semibold ${log.status.includes('SUKSES') ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}">${log.status}</span>
-                    </td>
-                    <td class="p-3 text-xs text-slate-600 max-w-md truncate" title="${log.message}">${log.message}</td>
-                `;
-                historyBody.appendChild(tr);
-            });
-        }
-
-        async function processWA(kode) {
-            const customer = customers.find(c => c.kode === kode);
-            if (!customer) return;
-
-            const daysAgo = calculateDaysAgo(customer.tglFaktur);
-            let template = document.getElementById('messageTemplate').value;
-
-            let message = template
-                .replace(/{KODE}/g, customer.kode || '')
-                .replace(/{NAMA}/g, customer.nama || '')
-                .replace(/{KATEGORI}/g, customer.kategori || '')
-                .replace(/{ALAMAT}/g, customer.alamat || '')
-                .replace(/{NOPOL}/g, customer.nopol || '')
-                .replace(/{JENIS_KENDAR}/g, customer.jenisKendar || '')
-                .replace(/{KM_AWAL}/g, Number(customer.kmAwal || 0).toLocaleString())
-                .replace(/{KETERANGAN}/g, customer.keterangan || '')
-                .replace(/{HARI_LALU}/g, daysAgo);
-
-            const btn = document.getElementById(`btn-${kode}`);
-            if (btn) {
-                btn.disabled = true;
-                btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-sm"></i> Memproses...`;
-            }
-
-            try {
-                const targetUrl = CONFIG.WEB_APP_URL || window.location.href.split('?')[0];
-                const baseUrl = targetUrl.split('?')[0];
-                
-                // MENGIRIM TRIGGER KE GOOGLE APPS SCRIPT UNTUK MENCATAT DI KOLOM K & MENGIRIM WA SERVERSIDE
-                const triggerUrl = `${baseUrl}?action=triggerSendWA` +
-                    `&kode=${encodeURIComponent(customer.kode)}` +
-                    `&target=${encodeURIComponent(customer.noHp)}` +
-                    `&message=${encodeURIComponent(message)}`;
-
-                const response = await fetch(triggerUrl);
-                const resData = await response.json();
-
-                const now = new Date();
-                const timeFormatted = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-
-                if (resData && resData.status === true) {
-                    customer.statusWa = "SUKSES TERKIRIM";
-                    customer.lastSent = resData.time || timeFormatted;
-
-                    historyLogs.push({
-                        time: customer.lastSent,
-                        kode: customer.kode,
-                        nama: customer.nama,
-                        noHp: customer.noHp,
-                        message: message,
-                        status: 'SUKSES TERKIRIM'
-                    });
-
-                    alert(`[BERHASIL] Trigger tercatat di Kolom K Sheet & Pesan terkirim ke ${customer.nama}`);
-                } else {
-                    customer.statusWa = "GAGAL TERKIRIM";
-                    historyLogs.push({
-                        time: timeFormatted,
-                        kode: customer.kode,
-                        nama: customer.nama,
-                        noHp: customer.noHp,
-                        message: message,
-                        status: 'GAGAL TERKIRIM'
-                    });
-
-                    alert(`[GAGAL] Status dicatat di Kolom K: ${resData.message || 'Error Server'}`);
-                }
-
-            } catch (error) {
-                alert('Terjadi kesalahan koneksi trigger Apps Script: ' + error.message);
-            } finally {
-                if (btn) btn.disabled = false;
-                updateStats();
-                renderTable();
-                renderHistoryTable();
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            loadCustomerData();
-        });
-    </script>
-</body>
-</html>
+                <!-- AKSI FONNTE -->
+                <td class="px-3 py-3.5 text-center bg-emerald-50/20">
+                    <button onclick="kirimViaFonnte('6289609751871', 'ABDULLAH')" class="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white px-3 py-2 rounded-xl text-xs font-semibold shadow-sm transition-all inline-flex items-center gap-1.5">
+                        <i class="fa-solid fa-rotate-right text-xs"></i> Kirim Ulang
+                    </button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
