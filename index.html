@@ -21,7 +21,7 @@
                      onerror="this.onerror=null; this.src='https://via.placeholder.com/40?text=CRM';">
                 <div>
                     <h1 class="font-bold text-lg leading-none text-slate-900">CRM Reminder Customer</h1>
-                    <span class="text-xs text-slate-500">Dashboard & Fonnte WhatsApp Gateway</span>
+                    <span class="text-xs text-slate-500">Dashboard & Fonnte WhatsApp Gateway (Trigger Mode)</span>
                 </div>
             </div>
             <div class="flex items-center gap-2">
@@ -137,9 +137,9 @@ https://maps.app.goo.gl/YBex22vwiSBdbCQY7
 *Abaikan pesan ini jika Anda baru saja melakukan perawatan AC mobil.*</textarea>
                 </div>
 
-                <div class="p-3 bg-emerald-50 rounded-lg border border-emerald-200/60 text-xs text-emerald-800 flex items-start gap-2">
-                    <i class="fa-solid fa-circle-info text-emerald-500 mt-0.5"></i>
-                    <span><b>Sistem Siap:</b> Pengiriman diproses aman melalui Apps Script Proxy untuk mencegah error CORS Fonnte.</span>
+                <div class="p-3 bg-indigo-50 rounded-lg border border-indigo-200/60 text-xs text-indigo-800 flex items-start gap-2">
+                    <i class="fa-solid fa-shield-halved text-indigo-500 mt-0.5 text-sm"></i>
+                    <span><b>Aman Dari Banned:</b> Eksekusi dilakukan via Sheet Trigger & Apps Script Server Side.</span>
                 </div>
             </div>
 
@@ -179,7 +179,7 @@ https://maps.app.goo.gl/YBex22vwiSBdbCQY7
                                 <th class="p-3">Pelanggan</th>
                                 <th class="p-3">Tgl Faktur</th>
                                 <th class="p-3">Kendaraan & KM</th>
-                                <th class="p-3">Keterangan</th>
+                                <th class="p-3">Status Sheet (Kolom K)</th>
                                 <th class="p-3 text-center">Aksi WA</th>
                             </tr>
                         </thead>
@@ -202,10 +202,10 @@ https://maps.app.goo.gl/YBex22vwiSBdbCQY7
             <div class="flex justify-between items-center border-b border-slate-100 pb-3">
                 <h2 class="text-md font-bold text-slate-800 flex items-center gap-2">
                     <i class="fa-solid fa-clock-rotate-left text-emerald-600"></i>
-                    Riwayat Pengiriman Pesan
+                    Riwayat Trigger Pengiriman Pesan
                 </h2>
                 <span id="historyCountBadge" class="bg-emerald-50 text-emerald-700 text-xs px-2.5 py-1 rounded-full border border-emerald-200 font-semibold">
-                    0 Pesan Terkirim
+                    0 Pesan Terproses
                 </span>
             </div>
 
@@ -213,16 +213,15 @@ https://maps.app.goo.gl/YBex22vwiSBdbCQY7
                 <table class="w-full text-left text-sm text-slate-600">
                     <thead class="bg-slate-50 text-xs uppercase text-slate-500 font-semibold border-b border-slate-200">
                         <tr>
-                            <th class="p-3">Waktu</th>
+                            <th class="p-3">Waktu Trigger</th>
                             <th class="p-3">Pelanggan</th>
-                            <th class="p-3">Metode</th>
-                            <th class="p-3">Isi Pesan Terkirim</th>
-                            <th class="p-3 text-center">Status</th>
+                            <th class="p-3">Status Sheet</th>
+                            <th class="p-3">Isi Pesan</th>
                         </tr>
                     </thead>
                     <tbody id="historyTableBody" class="divide-y divide-slate-200 bg-white">
                         <tr>
-                            <td colspan="5" class="p-4 text-center text-slate-400 italic">Belum ada riwayat pengiriman hari ini.</td>
+                            <td colspan="4" class="p-4 text-center text-slate-400 italic">Belum ada riwayat pengiriman hari ini.</td>
                         </tr>
                     </tbody>
                 </table>
@@ -234,18 +233,16 @@ https://maps.app.goo.gl/YBex22vwiSBdbCQY7
     <!-- JavaScript Logic Integration -->
     <script>
         // =========================================================================
-        // TEMPAT PENGISIAN URL SCRIPT &  FONNTE
+        // URL SCRIPT GOOGLE APPS SCRIPT WEB APP
         // =========================================================================
         const CONFIG = {
-            WEB_APP_URL: "https://script.google.com/macros/s/AKfycbwl9jqmHezZ77-0Zh-ezF--fdTzxZzQftLp1EKTx9g_mpjaPvR_Ub2LfDaCYOaxdS5o/exec", 
-            FONNTE_TOKEN: "81ovsjCZNwrDqtxatkFS" 
+            WEB_APP_URL: "https://script.google.com/macros/s/AKfycbwl9jqmHezZ77-0Zh-ezF--fdTzxZzQftLp1EKTx9g_mpjaPvR_Ub2LfDaCYOaxdS5o/exec" 
         };
         // =========================================================================
 
         let customers = [];
         const historyLogs = [];
 
-        // Ambil Data Dinamis
         function loadCustomerData() {
             const tableBody = document.getElementById('customerTableBody');
             const refreshIcon = document.getElementById('refreshIcon');
@@ -326,9 +323,9 @@ https://maps.app.goo.gl/YBex22vwiSBdbCQY7
             document.getElementById('statUnder30').innerText = customers.filter(c => calculateDaysAgo(c.tglFaktur) <= 30).length;
             document.getElementById('statOver30').innerText = customers.filter(c => calculateDaysAgo(c.tglFaktur) > 30).length;
             
-            const sentCount = customers.filter(c => c.lastSent !== null).length;
+            const sentCount = customers.filter(c => c.statusWa && c.statusWa.includes('SUKSES')).length;
             document.getElementById('statSent').innerText = sentCount;
-            document.getElementById('historyCountBadge').innerText = `${sentCount} Pesan Terkirim`;
+            document.getElementById('historyCountBadge').innerText = `${sentCount} Pesan Terproses`;
         }
 
         function renderTable() {
@@ -364,6 +361,17 @@ https://maps.app.goo.gl/YBex22vwiSBdbCQY7
             filteredData.forEach(item => {
                 const daysAgo = calculateDaysAgo(item.tglFaktur);
                 const isOver30 = daysAgo > 30;
+                
+                let badgeStatus = `<span class="bg-slate-100 text-slate-500 border-slate-200 border px-2 py-0.5 rounded text-[11px]">Belum Dikirim</span>`;
+                if (item.statusWa) {
+                    if (item.statusWa.includes('SUKSES')) {
+                        badgeStatus = `<span class="bg-emerald-50 text-emerald-700 border-emerald-200 border px-2 py-0.5 rounded text-[11px] font-semibold"><i class="fa-solid fa-check me-1"></i>${item.statusWa}</span>`;
+                    } else if (item.statusWa.includes('GAGAL')) {
+                        badgeStatus = `<span class="bg-rose-50 text-rose-700 border-rose-200 border px-2 py-0.5 rounded text-[11px] font-semibold"><i class="fa-solid fa-xmark me-1"></i>${item.statusWa}</span>`;
+                    } else {
+                        badgeStatus = `<span class="bg-amber-50 text-amber-700 border-amber-200 border px-2 py-0.5 rounded text-[11px] font-semibold">${item.statusWa}</span>`;
+                    }
+                }
 
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-slate-50 transition";
@@ -384,12 +392,13 @@ https://maps.app.goo.gl/YBex22vwiSBdbCQY7
                         <div class="text-slate-800 font-medium">${item.jenisKendar || '-'}</div>
                         <div class="text-xs text-slate-500 font-mono">${item.nopol || '-'} • ${Number(item.kmAwal || 0).toLocaleString()} KM</div>
                     </td>
-                    <td class="p-3 text-xs text-slate-600">
-                        <span class="bg-slate-100 p-1.5 rounded border border-slate-200 block max-w-xs truncate" title="${item.keterangan}">${item.keterangan || '-'}</span>
+                    <td class="p-3 text-xs">
+                        ${badgeStatus}
+                        ${item.lastSent ? `<div class="text-[10px] text-slate-400 mt-1">${item.lastSent}</div>` : ''}
                     </td>
                     <td class="p-3 text-center">
-                        <button onclick="processWA('${item.kode}')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold inline-flex items-center gap-1.5 transition shadow-sm">
-                            <i class="fa-brands fa-whatsapp text-sm"></i> ${item.lastSent ? 'Kirim Ulang' : 'Kirim WA'}
+                        <button id="btn-${item.kode}" onclick="processWA('${item.kode}')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold inline-flex items-center gap-1.5 transition shadow-sm">
+                            <i class="fa-brands fa-whatsapp text-sm"></i> ${item.statusWa ? 'Kirim Ulang' : 'Kirim WA'}
                         </button>
                     </td>
                 `;
@@ -401,7 +410,7 @@ https://maps.app.goo.gl/YBex22vwiSBdbCQY7
             const historyBody = document.getElementById('historyTableBody');
             
             if (historyLogs.length === 0) {
-                historyBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-400 italic">Belum ada riwayat pengiriman hari ini.</td></tr>`;
+                historyBody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-400 italic">Belum ada riwayat pengiriman hari ini.</td></tr>`;
                 return;
             }
 
@@ -413,12 +422,9 @@ https://maps.app.goo.gl/YBex22vwiSBdbCQY7
                     <td class="p-3 text-xs font-mono text-slate-500 whitespace-nowrap">${log.time}</td>
                     <td class="p-3 font-semibold text-slate-800 whitespace-nowrap">${log.nama} (${log.noHp})</td>
                     <td class="p-3 text-xs whitespace-nowrap">
-                        <span class="px-2 py-0.5 rounded border ${log.method === 'Fonnte API' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-amber-50 text-amber-700 border-amber-200'}">${log.method}</span>
+                        <span class="px-2 py-0.5 rounded-full font-semibold ${log.status.includes('SUKSES') ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}">${log.status}</span>
                     </td>
                     <td class="p-3 text-xs text-slate-600 max-w-md truncate" title="${log.message}">${log.message}</td>
-                    <td class="p-3 text-center text-xs">
-                        <span class="px-2 py-0.5 rounded-full font-semibold ${log.status === 'Success' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'}">${log.status}</span>
-                    </td>
                 `;
                 historyBody.appendChild(tr);
             });
@@ -429,7 +435,6 @@ https://maps.app.goo.gl/YBex22vwiSBdbCQY7
             if (!customer) return;
 
             const daysAgo = calculateDaysAgo(customer.tglFaktur);
-            const token = CONFIG.FONNTE_TOKEN ? CONFIG.FONNTE_TOKEN.trim() : "";
             let template = document.getElementById('messageTemplate').value;
 
             let message = template
@@ -443,64 +448,64 @@ https://maps.app.goo.gl/YBex22vwiSBdbCQY7
                 .replace(/{KETERANGAN}/g, customer.keterangan || '')
                 .replace(/{HARI_LALU}/g, daysAgo);
 
-            const now = new Date();
-            const timeFormatted = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            const btn = document.getElementById(`btn-${kode}`);
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-sm"></i> Memproses...`;
+            }
 
-            // Pengiriman via Apps Script Server Proxy (Mendukung Fonnte API)
-            if (token !== "") {
-                try {
-                    const targetUrl = CONFIG.WEB_APP_URL || window.location.href.split('?')[0];
-                    const baseUrl = targetUrl.split('?')[0];
-                    
-                    const proxyUrl = `${baseUrl}?action=sendFonnteWA` +
-                        `&target=${encodeURIComponent(customer.noHp)}` +
-                        `&message=${encodeURIComponent(message)}` +
-                        `&token=${encodeURIComponent(token)}`;
+            try {
+                const targetUrl = CONFIG.WEB_APP_URL || window.location.href.split('?')[0];
+                const baseUrl = targetUrl.split('?')[0];
+                
+                // MENGIRIM TRIGGER KE GOOGLE APPS SCRIPT UNTUK MENCATAT DI KOLOM K & MENGIRIM WA SERVERSIDE
+                const triggerUrl = `${baseUrl}?action=triggerSendWA` +
+                    `&kode=${encodeURIComponent(customer.kode)}` +
+                    `&target=${encodeURIComponent(customer.noHp)}` +
+                    `&message=${encodeURIComponent(message)}`;
 
-                    const response = await fetch(proxyUrl);
-                    const resData = await response.json();
+                const response = await fetch(triggerUrl);
+                const resData = await response.json();
 
-                    customer.lastSent = timeFormatted;
+                const now = new Date();
+                const timeFormatted = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+                if (resData && resData.status === true) {
+                    customer.statusWa = "SUKSES TERKIRIM";
+                    customer.lastSent = resData.time || timeFormatted;
+
+                    historyLogs.push({
+                        time: customer.lastSent,
+                        kode: customer.kode,
+                        nama: customer.nama,
+                        noHp: customer.noHp,
+                        message: message,
+                        status: 'SUKSES TERKIRIM'
+                    });
+
+                    alert(`[BERHASIL] Trigger tercatat di Kolom K Sheet & Pesan terkirim ke ${customer.nama}`);
+                } else {
+                    customer.statusWa = "GAGAL TERKIRIM";
                     historyLogs.push({
                         time: timeFormatted,
                         kode: customer.kode,
                         nama: customer.nama,
                         noHp: customer.noHp,
                         message: message,
-                        method: 'Fonnte API',
-                        status: (resData && (resData.status === true || resData.status === "true")) ? 'Success' : 'Failed'
+                        status: 'GAGAL TERKIRIM'
                     });
 
-                    if (resData && (resData.status === true || resData.status === "true")) {
-                        alert('Pesan berhasil dikirim via Fonnte API!');
-                    } else {
-                        alert('Gagal via Fonnte: ' + (resData.reason || resData.detail || 'Terjadi kesalahan pada server Fonnte'));
-                    }
-
-                } catch (error) {
-                    alert('Terjadi kesalahan pengiriman Proxy: ' + error.message);
+                    alert(`[GAGAL] Status dicatat di Kolom K: ${resData.message || 'Error Server'}`);
                 }
-            } else {
-                // Fallback via WhatsApp Web jika token kosong
-                customer.lastSent = timeFormatted;
-                historyLogs.push({
-                    time: timeFormatted,
-                    kode: customer.kode,
-                    nama: customer.nama,
-                    noHp: customer.noHp,
-                    message: message,
-                    method: 'WA Web Link',
-                    status: 'Opened'
-                });
 
-                const encodedMessage = encodeURIComponent(message);
-                const waUrl = `https://wa.me/${customer.noHp}?text=${encodedMessage}`;
-                window.open(waUrl, '_blank');
+            } catch (error) {
+                alert('Terjadi kesalahan koneksi trigger Apps Script: ' + error.message);
+            } finally {
+                if (btn) btn.disabled = false;
+                updateStats();
+                renderTable();
+                renderHistoryTable();
             }
-
-            updateStats();
-            renderTable();
-            renderHistoryTable();
         }
 
         document.addEventListener('DOMContentLoaded', () => {
