@@ -1,92 +1,771 @@
-<!-- TABEL RIWAYAT / STATUS WA -->
-<div class="overflow-x-auto border border-slate-200 rounded-2xl shadow-sm bg-white">
-    <table class="w-full text-xs text-left text-slate-600">
-        <thead class="text-xs text-slate-500 uppercase bg-slate-50/90 border-b border-slate-200 font-semibold">
-            <tr>
-                <th class="px-4 py-3.5">Pelanggan</th>
-                <th class="px-4 py-3.5">Tgl Faktur</th>
-                <th class="px-4 py-3.5">Kendaraan & KM</th>
-                <th class="px-4 py-3.5">Status Sheet (Kolom K)</th>
-                <!-- DUA KOLOM AKSI TERPISAH -->
-                <th class="px-3 py-3.5 text-center bg-blue-50/50 text-blue-700">Aksi (WA Web / Warming Up)</th>
-                <th class="px-3 py-3.5 text-center bg-emerald-50/50 text-emerald-700">Aksi (Fonnte API)</th>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistem Manajemen Operasional & CRM</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <style>
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    .loader {
+      border: 3px solid #f3f3f3;
+      border-radius: 50%;
+      border-top: 3px solid #3182ce;
+      width: 20px;
+      height: 20px;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body class="bg-gray-100 font-sans min-h-screen">
+
+  <!-- Header Navigasi Modul -->
+  <header class="bg-blue-800 text-white shadow-lg">
+    <div class="container mx-auto px-4 py-4 flex flex-wrap justify-between items-center">
+      <h1 class="text-xl font-bold tracking-wide">SISTEM OPERASIONAL BENGKEL & CRM</h1>
+      <nav class="flex space-x-2 mt-2 sm:mt-0 overflow-x-auto">
+        <button onclick="switchTab('pelanggan')" id="btn-pelanggan" class="tab-btn bg-blue-700 px-4 py-2 rounded font-medium hover:bg-blue-600">Pelanggan Baru</button>
+        <button onclick="switchTab('pembelian')" id="btn-pembelian" class="tab-btn bg-blue-900 px-4 py-2 rounded font-medium hover:bg-blue-600">Pembelian</button>
+        <button onclick="switchTab('faktur')" id="btn-faktur" class="tab-btn bg-blue-900 px-4 py-2 rounded font-medium hover:bg-blue-600">Faktur Penjualan</button>
+        <button onclick="switchTab('crm')" id="btn-crm" class="tab-btn bg-blue-900 px-4 py-2 rounded font-medium hover:bg-blue-600">CRM Reminder WA</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container mx-auto px-4 py-6">
+
+    <!-- Status Loading Overlay/Alert Global -->
+    <div id="globalNotification" class="hidden mb-4 p-4 rounded-lg font-semibold text-white"></div>
+
+    <!-- =================================================================== -->
+    <!-- MODUL 1: INPUT PELANGGAN BARU                                       -->
+    <!-- =================================================================== -->
+    <section id="tab-pelanggan" class="tab-content active bg-white p-6 rounded-lg shadow-md">
+      <h2 class="text-lg font-bold mb-4 text-gray-800 border-b pb-2">Form Input Data Pelanggan Baru</h2>
+      <form id="formPelanggan" onsubmit="handleFormPelanggan(event)" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Kode Pelanggan (ID)</label>
+          <input type="text" id="cust_id" required readonly class="mt-1 block w-full bg-gray-100 border rounded p-2 text-gray-700">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Tanggal</label>
+          <input type="date" id="cust_tgl" required class="mt-1 block w-full border rounded p-2">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Nama Pelanggan</label>
+          <input type="text" id="cust_nama" required class="mt-1 block w-full border rounded p-2">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Kategori</label>
+          <select id="cust_kategori" required class="mt-1 block w-full border rounded p-2"></select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700">No. WhatsApp/HP</label>
+          <input type="tel" id="cust_nohp" placeholder="08xxxxxxxxxx" required class="mt-1 block w-full border rounded p-2">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Alamat</label>
+          <input type="text" id="cust_alamat" class="mt-1 block w-full border rounded p-2">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700">No. Polisi (Nopol)</label>
+          <input type="text" id="cust_nopol" required class="mt-1 block w-full border rounded p-2">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Jenis Kendaraan</label>
+          <input type="text" id="cust_jenis" class="mt-1 block w-full border rounded p-2">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700">KM Awal Servis</label>
+          <input type="number" id="cust_kmawal" value="0" class="mt-1 block w-full border rounded p-2">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Admin Operator</label>
+          <select id="cust_admin" required class="mt-1 block w-full border rounded p-2"></select>
+        </div>
+        <div class="md:col-span-2 text-right mt-2">
+          <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 font-semibold inline-flex items-center">
+            <span id="btnTextPelanggan">Simpan Pelanggan</span>
+            <div id="loaderPelanggan" class="loader ml-2 hidden"></div>
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- MODUL 2: INPUT PEMBELIAN BARANG                                     -->
+    <!-- =================================================================== -->
+    <section id="tab-pembelian" class="tab-content bg-white p-6 rounded-lg shadow-md">
+      <h2 class="text-lg font-bold mb-4 text-gray-800 border-b pb-2">Form Input Pembelian Barang (Stock In)</h2>
+      <form id="formPembelian" onsubmit="handleFormPembelian(event)">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700">No. Nota / Faktur</label>
+            <input type="text" id="pem_nota" required class="mt-1 block w-full border rounded p-2">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Tanggal Pembelian</label>
+            <input type="date" id="pem_tgl" required class="mt-1 block w-full border rounded p-2">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Nama Pemasok/Supplier</label>
+            <input type="text" id="pem_pemasok" list="listPemasok" required class="mt-1 block w-full border rounded p-2">
+            <datalist id="listPemasok"></datalist>
+          </div>
+        </div>
+
+        <div class="border rounded-lg p-4 bg-gray-50 mb-4">
+          <h3 class="font-semibold text-gray-700 mb-2">Item Barang</h3>
+          <table class="w-full text-left text-sm mb-2" id="tablePembelian">
+            <thead>
+              <tr class="bg-gray-200 text-gray-700">
+                <th class="p-2">Kode</th>
+                <th class="p-2">Nama Barang</th>
+                <th class="p-2 w-20">Qty</th>
+                <th class="p-2 w-24">Satuan</th>
+                <th class="p-2">Harga Satuan</th>
+                <th class="p-2 w-24">Diskon</th>
+                <th class="p-2">Total</th>
+                <th class="p-2 w-12">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyPembelian"></tbody>
+          </table>
+          <button type="button" onclick="addRowPembelian()" class="text-sm bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700">+ Tambah Baris</button>
+        </div>
+
+        <div class="text-right">
+          <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 font-semibold inline-flex items-center">
+            <span id="btnTextPembelian">Simpan Pembelian</span>
+            <div id="loaderPembelian" class="loader ml-2 hidden"></div>
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- MODUL 3: FAKTUR PENJUALAN & GENERATE PDF                            -->
+    <!-- =================================================================== -->
+    <section id="tab-faktur" class="tab-content bg-white p-6 rounded-lg shadow-md">
+      <h2 class="text-lg font-bold mb-4 text-gray-800 border-b pb-2">Transaksi Penjualan (Faktur)</h2>
+      <form id="formFaktur" onsubmit="handleFormFaktur(event)">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Tanggal</label>
+            <input type="date" id="fak_tgl" required class="mt-1 block w-full border rounded p-2">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Pilih Pelanggan</label>
+            <input type="text" id="fak_cust_search" list="listPelangganFaktur" onchange="autoFillPelangganFaktur()" placeholder="Ketik nama pelanggan..." required class="mt-1 block w-full border rounded p-2">
+            <datalist id="listPelangganFaktur"></datalist>
+            <input type="hidden" id="fak_cust_kode">
+            <input type="hidden" id="fak_cust_nama">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Admin</label>
+            <input type="text" id="fak_admin" readonly class="mt-1 block w-full bg-gray-100 border rounded p-2">
+          </div>
+        </div>
+
+        <!-- Detail Item Penjualan -->
+        <div class="border rounded-lg p-4 bg-gray-50 mb-4">
+          <h3 class="font-semibold text-gray-700 mb-2">Detail Transaksi Penjualan</h3>
+          <table class="w-full text-left text-sm mb-2" id="tableFaktur">
+            <thead>
+              <tr class="bg-gray-200 text-gray-700">
+                <th class="p-2">Barang</th>
+                <th class="p-2 w-20">Qty</th>
+                <th class="p-2 w-24">Satuan</th>
+                <th class="p-2">Harga</th>
+                <th class="p-2 w-24">Diskon</th>
+                <th class="p-2">Total</th>
+                <th class="p-2 w-12">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyFaktur"></tbody>
+          </table>
+          <button type="button" onclick="addRowFaktur()" class="text-sm bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700">+ Tambah Item</button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Catatan/Keterangan</label>
+            <textarea id="fak_catatan" rows="3" class="mt-1 block w-full border rounded p-2"></textarea>
+          </div>
+          <div class="space-y-2">
+            <div class="flex justify-between items-center">
+              <span class="text-sm font-medium text-gray-700">PPN (%)</span>
+              <input type="number" id="fak_ppn" value="0" oninput="calcTotalFaktur()" class="w-24 border rounded p-1 text-right">
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-sm font-medium text-gray-700">PPh (%)</span>
+              <input type="number" id="fak_pph" value="0" oninput="calcTotalFaktur()" class="w-24 border rounded p-1 text-right">
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-sm font-medium text-gray-700">Diskon Tambahan</span>
+              <input type="number" id="fak_diskon_tam" value="0" oninput="calcTotalFaktur()" class="w-24 border rounded p-1 text-right">
+            </div>
+            <div class="flex justify-between items-center font-bold text-lg border-t pt-2">
+              <span>Grand Total</span>
+              <span id="fak_grand_total">Rp 0</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="text-right">
+          <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 font-semibold inline-flex items-center">
+            <span id="btnTextFaktur">Proses & Generate PDF Faktur</span>
+            <div id="loaderFaktur" class="loader ml-2 hidden"></div>
+          </button>
+        </div>
+      </form>
+
+      <!-- Template Dokumen Cetak PDF (Hidden Secara Default) -->
+      <div class="hidden">
+        <div id="pdfTemplate" class="p-8 font-sans text-black bg-white">
+          <div class="border-b-2 border-black pb-4 mb-4 flex justify-between items-center">
+            <div>
+              <h1 class="text-2xl font-bold">FAKTUR PENJUALAN</h1>
+              <p id="pdf_kode_unik" class="text-sm font-semibold text-gray-600"></p>
+            </div>
+            <div class="text-right text-sm">
+              <p id="pdf_tgl"></p>
+              <p id="pdf_admin"></p>
+            </div>
+          </div>
+          <div class="mb-4 text-sm">
+            <p><strong>Pelanggan:</strong> <span id="pdf_cust_nama"></span> (<span id="pdf_cust_kode"></span>)</p>
+          </div>
+          <table class="w-full text-left text-sm border-collapse mb-4">
+            <thead>
+              <tr class="border-b border-t border-black">
+                <th class="py-2">Item Barang</th>
+                <th class="py-2 text-center">Qty</th>
+                <th class="py-2 text-right">Harga</th>
+                <th class="py-2 text-right">Diskon</th>
+                <th class="py-2 text-right">Total</th>
+              </tr>
+            </thead>
+            <tbody id="pdf_items"></tbody>
+          </table>
+          <div class="flex justify-end text-sm">
+            <div class="w-1/2 space-y-1">
+              <div class="flex justify-between"><span>Subtotal:</span><span id="pdf_subtotal"></span></div>
+              <div class="flex justify-between"><span>PPN/PPh:</span><span id="pdf_pajak"></span></div>
+              <div class="flex justify-between"><span>Diskon Tambahan:</span><span id="pdf_diskontam"></span></div>
+              <div class="flex justify-between font-bold border-t border-black pt-1"><span>Grand Total:</span><span id="pdf_grandtotal"></span></div>
+            </div>
+          </div>
+          <div class="mt-8 border-t border-gray-300 pt-2 text-xs text-gray-500">
+            <p>Catatan: <span id="pdf_catatan"></span></p>
+            <p class="mt-1">Terima kasih telah mempercayakan kendaraan Anda kepada kami!</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- MODUL 4: DASHBOARD CRM REMINDER WA                                  -->
+    <!-- =================================================================== -->
+    <section id="tab-crm" class="tab-content bg-white p-6 rounded-lg shadow-md">
+      <div class="flex justify-between items-center mb-4 border-b pb-2">
+        <h2 class="text-lg font-bold text-gray-800">Dashboard Reminder Pelanggan WhatsApp (CRM)</h2>
+        <button onclick="loadReminderData()" class="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700">Refresh Data</button>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm">
+          <thead>
+            <tr class="bg-gray-100 text-gray-700 border-b">
+              <th class="p-2">Kode</th>
+              <th class="p-2">Nama</th>
+              <th class="p-2">No. HP</th>
+              <th class="p-2">Nopol / Kendaraan</th>
+              <th class="p-2">KM Awal</th>
+              <th class="p-2">Status (Kolom K)</th>
+              <th class="p-2">Terakhir Dikirim (Kolom L)</th>
+              <th class="p-2">Aksi Send WA</th>
             </tr>
-        </thead>
-        <tbody class="divide-y divide-slate-100">
-            <!-- CONTOH BARIS DATA 1 -->
-            <tr class="hover:bg-slate-50/80 transition-colors">
-                <td class="px-4 py-3.5">
-                    <div class="font-bold text-slate-800">AMARZONI <span class="text-[10px] font-medium bg-slate-100 px-1.5 py-0.5 rounded text-slate-500">UMUM</span></div>
-                    <div class="text-[11px] text-slate-400">CUST-2607-4854 • 6282223336103</div>
-                    <div class="text-[10px] text-slate-400"><i class="fa-solid fa-location-dot"></i> JERMAN</div>
-                </td>
-                <td class="px-4 py-3.5">
-                    <div>2026-07-27</div>
-                    <span class="inline-flex items-center gap-1 text-[10px] text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                        <i class="fa-solid fa-check"></i> 2 hari lalu
-                    </span>
-                </td>
-                <td class="px-4 py-3.5">
-                    <div class="font-bold text-slate-700">TRUCK PERTAMINA</div>
-                    <div class="text-[11px] text-slate-400">AB 5555 AM • 12,313 KM</div>
-                </td>
-                <td class="px-4 py-3.5">
-                    <span class="bg-slate-100 text-slate-500 px-2.5 py-1 rounded-md text-[11px] border border-slate-200">Belum Dikirim</span>
-                </td>
+          </thead>
+          <tbody id="tbodyCRM">
+            <tr><td colspan="8" class="text-center p-4 text-gray-500">Loading data pengingat...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
 
-                <!-- 1. KOLOM AKSI WA WEB (SEMI AUTO) -->
-                <td class="px-3 py-3.5 text-center bg-blue-50/20">
-                    <button onclick="kirimViaWaWeb('6282223336103', 'AMARZONI', 'BS-2607-001')" class="bg-blue-600 hover:bg-blue-700 active:scale-95 text-white px-3 py-2 rounded-xl text-xs font-semibold shadow-sm transition-all inline-flex items-center gap-1.5">
-                        <i class="fa-brands fa-whatsapp text-sm"></i> WA Web
-                    </button>
-                </td>
+  </main>
 
-                <!-- 2. KOLOM AKSI FONNTE (AUTOMATIC) -->
-                <td class="px-3 py-3.5 text-center bg-emerald-50/20">
-                    <button onclick="kirimViaFonnte('6282223336103', 'AMARZONI')" class="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white px-3 py-2 rounded-xl text-xs font-semibold shadow-sm transition-all inline-flex items-center gap-1.5">
-                        <i class="fa-solid fa-paper-plane text-xs"></i> Kirim Fonnte
-                    </button>
-                </td>
+  <script>
+    // Variable Konfigurasi
+    const GOOGLE_DRIVE_FOLDER_ID = "PASTE_ID_FOLDER_GOOGLE_DRIVE_DI_SINI"; // Masukkan ID Folder Drive Penyimpanan PDF
+
+    // Master Cache Data
+    let masterOperators = [];
+    let masterCategories = [];
+    let masterBarang = [];
+    let masterPemasok = [];
+    let masterPelanggan = [];
+
+    // On Load Initialization
+    document.addEventListener('DOMContentLoaded', () => {
+      // Set Tanggal Hari Ini secara otomatis ke semua input date
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('cust_tgl').value = today;
+      document.getElementById('pem_tgl').value = today;
+      document.getElementById('fak_tgl').value = today;
+
+      // Generasi Kode Unik ID Customer
+      document.getElementById('cust_id').value = "CUST-" + Math.floor(1000 + Math.random() * 9000);
+
+      // Inisialisasi Data Master dari Gas Server
+      fetchDropdownData();
+      fetchBarangAndPemasok();
+      fetchDataMasterFaktur();
+    });
+
+    // Navigation Switch Tab
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(el => el.classList.replace('bg-blue-700', 'bg-blue-900'));
+      
+      document.getElementById(`tab-${tabName}`).classList.add('active');
+      document.getElementById(`btn-${tabName}`).classList.replace('bg-blue-900', 'bg-blue-700');
+
+      if (tabName === 'crm') loadReminderData();
+    }
+
+    function showNotification(msg, isSuccess = true) {
+      const notif = document.getElementById('globalNotification');
+      notif.className = `mb-4 p-4 rounded-lg font-semibold text-white ${isSuccess ? 'bg-green-600' : 'bg-red-600'}`;
+      notif.innerText = msg;
+      notif.classList.remove('hidden');
+      setTimeout(() => notif.classList.add('hidden'), 5000);
+    }
+
+    /* ===================================================================
+       1. INTEGRASI DATA DROPDOWN MASTER (OPERATOR & KATEGORI)
+       =================================================================== */
+    function fetchDropdownData() {
+      google.script.run
+        .withSuccessHandler(data => {
+          if (data) {
+            masterOperators = data.operators || [];
+            masterCategories = data.categories || [];
+
+            const selKat = document.getElementById('cust_kategori');
+            selKat.innerHTML = masterCategories.map(c => `<option value="${c}">${c}</option>`).join('');
+
+            const selAdmin = document.getElementById('cust_admin');
+            selAdmin.innerHTML = masterOperators.map(o => `<option value="${o}">${o}</option>`).join('');
+            if (masterOperators.length > 0) {
+              document.getElementById('fak_admin').value = masterOperators[0];
+            }
+          }
+        })
+        .doGet({ parameter: { action: 'getDropdownData' } });
+    }
+
+    /* ===================================================================
+       2. INTEGRASI DATA BARANG & PEMASOK
+       =================================================================== */
+    function fetchBarangAndPemasok() {
+      google.script.run
+        .withSuccessHandler(data => {
+          if (data && !data.error) {
+            masterBarang = data.barang || [];
+            masterPemasok = data.pemasok || [];
+
+            const listPem = document.getElementById('listPemasok');
+            listPem.innerHTML = masterPemasok.map(p => `<option value="${p}">`).join('');
+
+            // Set default 1 baris di form Pembelian & Faktur
+            if (document.getElementById('tbodyPembelian').children.length === 0) addRowPembelian();
+            if (document.getElementById('tbodyFaktur').children.length === 0) addRowFaktur();
+          }
+        })
+        .doGet({ parameter: { action: 'getBarangAndPemasok' } });
+    }
+
+    /* ===================================================================
+       3. INTEGRASI MASTER DATA FAKTUR (PELANGGAN)
+       =================================================================== */
+    function fetchDataMasterFaktur() {
+      google.script.run
+        .withSuccessHandler(res => {
+          if (res && res.status === "success") {
+            masterPelanggan = res.pelanggan || [];
+            const listCust = document.getElementById('listPelangganFaktur');
+            listCust.innerHTML = masterPelanggan.map(p => `<option value="${p.nama} (${p.kode})">`).join('');
+          }
+        })
+        .doGet({ parameter: { action: 'getDataMaster' } });
+    }
+
+    function autoFillPelangganFaktur() {
+      const val = document.getElementById('fak_cust_search').value;
+      const found = masterPelanggan.find(p => `${p.nama} (${p.kode})` === val || p.nama === val);
+      if (found) {
+        document.getElementById('fak_cust_kode').value = found.kode;
+        document.getElementById('fak_cust_nama').value = found.nama;
+      }
+    }
+
+    /* ===================================================================
+       4. LOGIKA FORM INPUT PELANGGAN BARU (doPost Default)
+       =================================================================== */
+    function handleFormPelanggan(e) {
+      e.preventDefault();
+      document.getElementById('btnTextPelanggan').innerText = "Menyimpan...";
+      document.getElementById('loaderPelanggan').classList.remove('hidden');
+
+      const payload = {
+        idCustomer: document.getElementById('cust_id').value,
+        tanggal: document.getElementById('cust_tgl').value,
+        nama: document.getElementById('cust_nama').value,
+        kategori: document.getElementById('cust_kategori').value,
+        noHp: document.getElementById('cust_nohp').value,
+        alamat: document.getElementById('cust_alamat').value,
+        nopol: document.getElementById('cust_nopol').value,
+        jenisKendaraan: document.getElementById('cust_jenis').value,
+        kmAwal: document.getElementById('cust_kmawal').value,
+        admin: document.getElementById('cust_admin').value
+      };
+
+      google.script.run
+        .withSuccessHandler(res => {
+          document.getElementById('btnTextPelanggan').innerText = "Simpan Pelanggan";
+          document.getElementById('loaderPelanggan').classList.add('hidden');
+          if (res.result === "success") {
+            showNotification("Data Pelanggan Berhasil Disimpan!");
+            document.getElementById('formPelanggan').reset();
+            document.getElementById('cust_id').value = "CUST-" + Math.floor(1000 + Math.random() * 9000);
+            fetchDataMasterFaktur();
+          } else {
+            showNotification("Gagal: " + res.message, false);
+          }
+        })
+        .doPost({ postData: { contents: JSON.stringify(payload) } });
+    }
+
+    /* ===================================================================
+       5. LOGIKA FORM PEMBELIAN (action: submitPembelian)
+       =================================================================== */
+    function addRowPembelian() {
+      const tbody = document.getElementById('tbodyPembelian');
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="p-1"><input type="text" class="pem-kode w-full border rounded p-1"></td>
+        <td class="p-1"><input type="text" class="pem-nama w-full border rounded p-1" required></td>
+        <td class="p-1"><input type="number" value="1" oninput="calcRowPembelian(this)" class="pem-qty w-full border rounded p-1 text-center" required></td>
+        <td class="p-1"><input type="text" class="pem-satuan w-full border rounded p-1"></td>
+        <td class="p-1"><input type="number" value="0" oninput="calcRowPembelian(this)" class="pem-harga w-full border rounded p-1 text-right" required></td>
+        <td class="p-1"><input type="number" value="0" oninput="calcRowPembelian(this)" class="pem-diskon w-full border rounded p-1 text-right"></td>
+        <td class="p-1"><input type="number" value="0" readonly class="pem-total w-full bg-gray-100 border rounded p-1 text-right"></td>
+        <td class="p-1 text-center"><button type="button" onclick="this.closest('tr').remove()" class="text-red-600 font-bold">X</button></td>
+      `;
+      tbody.appendChild(tr);
+    }
+
+    function calcRowPembelian(input) {
+      const tr = input.closest('tr');
+      const qty = parseFloat(tr.querySelector('.pem-qty').value) || 0;
+      const harga = parseFloat(tr.querySelector('.pem-harga').value) || 0;
+      const diskon = parseFloat(tr.querySelector('.pem-diskon').value) || 0;
+      const total = (qty * harga) - diskon;
+      tr.querySelector('.pem-total').value = total > 0 ? total : 0;
+    }
+
+    function handleFormPembelian(e) {
+      e.preventDefault();
+      document.getElementById('btnTextPembelian').innerText = "Menyimpan...";
+      document.getElementById('loaderPembelian').classList.remove('hidden');
+
+      const items = [];
+      document.querySelectorAll('#tbodyPembelian tr').forEach(tr => {
+        items.push({
+          kodeBarang: tr.querySelector('.pem-kode').value,
+          namaBarang: tr.querySelector('.pem-nama').value,
+          qty: parseFloat(tr.querySelector('.pem-qty').value) || 0,
+          satuan: tr.querySelector('.pem-satuan').value,
+          hargaSatuan: parseFloat(tr.querySelector('.pem-harga').value) || 0,
+          diskon: parseFloat(tr.querySelector('.pem-diskon').value) || 0,
+          totalHarga: parseFloat(tr.querySelector('.pem-total').value) || 0
+        });
+      });
+
+      const payload = {
+        action: "submitPembelian",
+        noNota: document.getElementById('pem_nota').value,
+        tglPembelian: document.getElementById('pem_tgl').value,
+        namaSupplier: document.getElementById('pem_pemasok').value,
+        items: items
+      };
+
+      google.script.run
+        .withSuccessHandler(res => {
+          document.getElementById('btnTextPembelian').innerText = "Simpan Pembelian";
+          document.getElementById('loaderPembelian').classList.add('hidden');
+          if (res.status === "success") {
+            showNotification(res.message);
+            document.getElementById('formPembelian').reset();
+            document.getElementById('tbodyPembelian').innerHTML = "";
+            addRowPembelian();
+          } else {
+            showNotification("Gagal: " + res.message, false);
+          }
+        })
+        .doPost({ postData: { contents: JSON.stringify(payload) } });
+    }
+
+    /* ===================================================================
+       6. FAKTUR PENJUALAN, SUBMIT, PDF GENERATE & DRIVE UPLOAD
+       =================================================================== */
+    function addRowFaktur() {
+      const tbody = document.getElementById('tbodyFaktur');
+      const tr = document.createElement('tr');
+      
+      let optionsBrg = masterBarang.map(b => `<option value="${b.nama}" data-kode="${b.kode}" data-satuan="${b.satuan}">`).join('');
+
+      tr.innerHTML = `
+        <td class="p-1">
+          <input type="text" list="listBarangFaktur" onchange="autoFillBarangFaktur(this)" class="fak-nama w-full border rounded p-1" required>
+          <datalist id="listBarangFaktur">${optionsBrg}</datalist>
+          <input type="hidden" class="fak-kode">
+        </td>
+        <td class="p-1"><input type="number" value="1" oninput="calcTotalFaktur()" class="fak-qty w-full border rounded p-1 text-center" required></td>
+        <td class="p-1"><input type="text" class="fak-satuan w-full border rounded p-1"></td>
+        <td class="p-1"><input type="number" value="0" oninput="calcTotalFaktur()" class="fak-harga w-full border rounded p-1 text-right" required></td>
+        <td class="p-1"><input type="number" value="0" oninput="calcTotalFaktur()" class="fak-diskon w-full border rounded p-1 text-right"></td>
+        <td class="p-1"><input type="number" value="0" readonly class="fak-total w-full bg-gray-100 border rounded p-1 text-right"></td>
+        <td class="p-1 text-center"><button type="button" onclick="this.closest('tr').remove(); calcTotalFaktur();" class="text-red-600 font-bold">X</button></td>
+      `;
+      tbody.appendChild(tr);
+    }
+
+    function autoFillBarangFaktur(input) {
+      const tr = input.closest('tr');
+      const val = input.value;
+      const found = masterBarang.find(b => b.nama === val);
+      if (found) {
+        tr.querySelector('.fak-kode').value = found.kode;
+        tr.querySelector('.fak-satuan').value = found.satuan;
+      }
+    }
+
+    function calcTotalFaktur() {
+      let subtotal = 0;
+      document.querySelectorAll('#tbodyFaktur tr').forEach(tr => {
+        const qty = parseFloat(tr.querySelector('.fak-qty').value) || 0;
+        const harga = parseFloat(tr.querySelector('.fak-harga').value) || 0;
+        const diskon = parseFloat(tr.querySelector('.fak-diskon').value) || 0;
+        const total = (qty * harga) - diskon;
+        tr.querySelector('.fak-total').value = total > 0 ? total : 0;
+        subtotal += (total > 0 ? total : 0);
+      });
+
+      const ppn = parseFloat(document.getElementById('fak_ppn').value) || 0;
+      const pph = parseFloat(document.getElementById('fak_pph').value) || 0;
+      const diskonTam = parseFloat(document.getElementById('fak_diskon_tam').value) || 0;
+
+      const pajak = subtotal * ((ppn + pph) / 100);
+      const grandTotal = subtotal + pajak - diskonTam;
+
+      document.getElementById('fak_grand_total').innerText = "Rp " + grandTotal.toLocaleString('id-ID');
+      return { subtotal, grandTotal };
+    }
+
+    function handleFormFaktur(e) {
+      e.preventDefault();
+      document.getElementById('btnTextFaktur').innerText = "Memproses Faktur & PDF...";
+      document.getElementById('loaderFaktur').classList.remove('hidden');
+
+      const items = [];
+      document.querySelectorAll('#tbodyFaktur tr').forEach(tr => {
+        items.push({
+          kodeBarang: tr.querySelector('.fak-kode').value,
+          namaBarang: tr.querySelector('.fak-nama').value,
+          qty: parseFloat(tr.querySelector('.fak-qty').value) || 0,
+          satuan: tr.querySelector('.fak-satuan').value,
+          harga: parseFloat(tr.querySelector('.fak-harga').value) || 0,
+          diskon: parseFloat(tr.querySelector('.fak-diskon').value) || 0,
+          total: parseFloat(tr.querySelector('.fak-total').value) || 0
+        });
+      });
+
+      const payload = {
+        tanggal: document.getElementById('fak_tgl').value,
+        kodePelanggan: document.getElementById('fak_cust_kode').value,
+        namaPelanggan: document.getElementById('fak_cust_nama').value,
+        admin: document.getElementById('fak_admin').value,
+        catatan: document.getElementById('fak_catatan').value,
+        ppn: parseFloat(document.getElementById('fak_ppn').value) || 0,
+        pph: parseFloat(document.getElementById('fak_pph').value) || 0,
+        diskonTambahan: parseFloat(document.getElementById('fak_diskon_tam').value) || 0,
+        items: items
+      };
+
+      // STEP 1: Submit data transaksi ke sheet Penjualan via doGet
+      google.script.run
+        .withSuccessHandler(res => {
+          if (res.status === "success") {
+            const kodeUnik = res.kodeUnik;
+            // STEP 2: Generate PDF Client Side & Upload Base64 via doPost
+            generateAndUploadPDF(kodeUnik, payload);
+          } else {
+            showNotification("Gagal simpan faktur: " + res.message, false);
+            resetFakturButton();
+          }
+        })
+        .doGet({ parameter: { action: 'submitFakturData', data: JSON.stringify(payload) } });
+    }
+
+    function generateAndUploadPDF(kodeUnik, payload) {
+      // Populasi data ke Template Cetak PDF
+      document.getElementById('pdf_kode_unik').innerText = "No. Faktur: " + kodeUnik;
+      document.getElementById('pdf_tgl').innerText = "Tanggal: " + payload.tanggal;
+      document.getElementById('pdf_admin').innerText = "Admin: " + payload.admin;
+      document.getElementById('pdf_cust_nama').innerText = payload.namaPelanggan;
+      document.getElementById('pdf_cust_kode').innerText = payload.kodePelanggan;
+      document.getElementById('pdf_catatan').innerText = payload.catatan || "-";
+
+      let tbodyHtml = "";
+      let subtotal = 0;
+      payload.items.forEach(it => {
+        subtotal += it.total;
+        tbodyHtml += `
+          <tr class="border-b">
+            <td class="py-1">${it.namaBarang}</td>
+            <td class="py-1 text-center">${it.qty} ${it.satuan}</td>
+            <td class="py-1 text-right">Rp ${it.harga.toLocaleString('id-ID')}</td>
+            <td class="py-1 text-right">Rp ${it.diskon.toLocaleString('id-ID')}</td>
+            <td class="py-1 text-right">Rp ${it.total.toLocaleString('id-ID')}</td>
+          </tr>
+        `;
+      });
+      document.getElementById('pdf_items').innerHTML = tbodyHtml;
+      
+      const calc = calcTotalFaktur();
+      document.getElementById('pdf_subtotal').innerText = "Rp " + subtotal.toLocaleString('id-ID');
+      document.getElementById('pdf_pajak').innerText = `PPN/PPh (${payload.ppn + payload.pph}%): Rp ` + (subtotal * ((payload.ppn + payload.pph)/100)).toLocaleString('id-ID');
+      document.getElementById('pdf_diskontam').innerText = "Rp " + payload.diskonTambahan.toLocaleString('id-ID');
+      document.getElementById('pdf_grandtotal').innerText = document.getElementById('fak_grand_total').innerText;
+
+      // Konversi HTML Template ke PDF Blob / Base64
+      const element = document.getElementById('pdfTemplate');
+      const opt = {
+        margin:       0.5,
+        filename:     `Faktur_${kodeUnik}.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2 },
+        jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+      };
+
+      html2pdf().set(opt).from(element).outputPdf('datauristring').then(pdfBase64 => {
+        const base64Clean = pdfBase64.split(',')[1];
+        
+        // Post Upload ke Google Drive via Apps Script
+        const uploadPayload = {
+          action: "uploadPdfDrive",
+          folderId: GOOGLE_DRIVE_FOLDER_ID,
+          fileName: `Faktur_${kodeUnik}.pdf`,
+          kodeUnik: kodeUnik,
+          pdfBase64: base64Clean
+        };
+
+        google.script.run
+          .withSuccessHandler(uploadRes => {
+            resetFakturButton();
+            if (uploadRes.status === "success") {
+              showNotification(`Faktur ${kodeUnik} berhasil diproses & PDF tersimpan di Drive!`);
+              document.getElementById('formFaktur').reset();
+              document.getElementById('tbodyFaktur').innerHTML = "";
+              addRowFaktur();
+            } else {
+              showNotification("Faktur tersimpan, tetapi PDF gagal diunggah: " + uploadRes.message, false);
+            }
+          })
+          .doPost({ postData: { contents: JSON.stringify(uploadPayload) } });
+      });
+    }
+
+    function resetFakturButton() {
+      document.getElementById('btnTextFaktur').innerText = "Proses & Generate PDF Faktur";
+      document.getElementById('loaderFaktur').classList.add('hidden');
+    }
+
+    /* ===================================================================
+       7. INTEGRASI CRM DASHBOARD & TRIGGER REMINDER WA (action: triggerSendWA)
+       =================================================================== */
+    function loadReminderData() {
+      const tbody = document.getElementById('tbodyCRM');
+      tbody.innerHTML = `<tr><td colspan="8" class="text-center p-4 text-gray-500">Memuat data pengingat...</td></tr>`;
+
+      google.script.run
+        .withSuccessHandler(data => {
+          if (!data || data.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="8" class="text-center p-4 text-gray-500">Tidak ada data pelanggan pengingat.</td></tr>`;
+            return;
+          }
+
+          tbody.innerHTML = data.map(item => `
+            <tr class="border-b hover:bg-gray-50">
+              <td class="p-2 font-mono">${item.kode}</td>
+              <td class="p-2 font-semibold">${item.nama}</td>
+              <td class="p-2">${item.noHp}</td>
+              <td class="p-2">${item.nopol} (${item.jenisKendar})</td>
+              <td class="p-2">${item.kmAwal} KM</td>
+              <td class="p-2">
+                <span class="px-2 py-1 rounded text-xs font-bold ${
+                  item.statusWa.includes('SUKSES') ? 'bg-green-100 text-green-800' :
+                  item.statusWa.includes('GAGAL') ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'
+                }">
+                  ${item.statusWa || 'BELUM DIKIRIM'}
+                </span>
+              </td>
+              <td class="p-2 text-xs text-gray-500">${item.lastSent || '-'}</td>
+              <td class="p-2">
+                <button onclick="triggerWA('${item.kode}', '${item.nama}', '${item.noHp}', '${item.nopol}')" class="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700 flex items-center">
+                  Kirim WA
+                </button>
+              </td>
             </tr>
+          `).join('');
+        })
+        .doGet({ parameter: { action: 'getReminderCust' } });
+    }
 
-            <!-- CONTOH BARIS DATA 2 (GAGAL / KIRIM ULANG) -->
-            <tr class="hover:bg-slate-50/80 transition-colors">
-                <td class="px-4 py-3.5">
-                    <div class="font-bold text-slate-800">ABDULLAH <span class="text-[10px] font-medium bg-slate-100 px-1.5 py-0.5 rounded text-slate-500">UMUM</span></div>
-                    <div class="text-[11px] text-slate-400">CUST-2607-8192 • 6289609751871</div>
-                    <div class="text-[10px] text-slate-400"><i class="fa-solid fa-location-dot"></i> PORTUGAL</div>
-                </td>
-                <td class="px-4 py-3.5">
-                    <div>2026-07-27</div>
-                    <span class="inline-flex items-center gap-1 text-[10px] text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                        <i class="fa-solid fa-check"></i> 2 hari lalu
-                    </span>
-                </td>
-                <td class="px-4 py-3.5">
-                    <div class="font-bold text-slate-700">AVANZA</div>
-                    <div class="text-[11px] text-slate-400">AB 13123 AZ • 121,312 KM</div>
-                </td>
-                <td class="px-4 py-3.5">
-                    <span class="bg-rose-50 text-rose-600 border border-rose-200 px-2 py-0.5 rounded text-[10px] font-bold block w-fit">
-                        <i class="fa-solid fa-xmark"></i> GAGAL TERKIRIM
-                    </span>
-                    <span class="text-[9px] text-slate-400 block mt-0.5">2026-07-28 12:03:12</span>
-                </td>
+    function triggerWA(kode, nama, noHp, nopol) {
+      if (!confirm(`Kirim pesan reminder WhatsApp ke ${nama} (${noHp})?`)) return;
 
-                <!-- AKSI WA WEB -->
-                <td class="px-3 py-3.5 text-center bg-blue-50/20">
-                    <button onclick="kirimViaWaWeb('6289609751871', 'ABDULLAH', 'BS-2607-002')" class="bg-blue-600 hover:bg-blue-700 active:scale-95 text-white px-3 py-2 rounded-xl text-xs font-semibold shadow-sm transition-all inline-flex items-center gap-1.5">
-                        <i class="fa-brands fa-whatsapp text-sm"></i> WA Web
-                    </button>
-                </td>
+      const message = `Halo Sdr/i ${nama}, ini adalah pesan pengingat servis rutin untuk kendaraan Anda dengan Nopol ${nopol}. Terima kasih telah mempercayai layanan kami!`;
 
-                <!-- AKSI FONNTE -->
-                <td class="px-3 py-3.5 text-center bg-emerald-50/20">
-                    <button onclick="kirimViaFonnte('6289609751871', 'ABDULLAH')" class="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white px-3 py-2 rounded-xl text-xs font-semibold shadow-sm transition-all inline-flex items-center gap-1.5">
-                        <i class="fa-solid fa-rotate-right text-xs"></i> Kirim Ulang
-                    </button>
-                </td>
-            </tr>
-        </tbody>
-    </table>
-</div>
+      showNotification(`Memproses pengiriman WA ke ${nama}... (Mohon tunggu)`);
+
+      google.script.run
+        .withSuccessHandler(res => {
+          if (res.status) {
+            showNotification(`[SUKSES] WA Terkirim ke ${nama} pada ${res.time}`);
+          } else {
+            showNotification(`[GAGAL] ${res.message}`, false);
+          }
+          // Refresh tabel CRM untuk memperbarui Kolom K dan L
+          loadReminderData();
+        })
+        .doGet({
+          parameter: {
+            action: 'triggerSendWA',
+            kode: kode,
+            target: noHp,
+            message: message
+          }
+        });
+    }
+  </script>
+</body>
+</html>
